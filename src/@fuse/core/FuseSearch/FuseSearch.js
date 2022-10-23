@@ -1,27 +1,59 @@
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Icon from '@material-ui/core/Icon';
-import IconButton from '@material-ui/core/IconButton';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import Paper from '@material-ui/core/Paper';
-import Popper from '@material-ui/core/Popper';
-import { makeStyles } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import { styled } from '@mui/material/styles';
+import IconButton from '@mui/material/IconButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
+import Popper from '@mui/material/Popper';
+import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import clsx from 'clsx';
 import _ from '@lodash';
 import { memo, useEffect, useReducer, useRef } from 'react';
 import Autosuggest from 'react-autosuggest';
-import { useSelector } from 'react-redux';
-import { withRouter } from 'react-router-dom';
-import { selectFlatNavigation } from 'app/store/fuse/navigationSlice';
+import withRouter from '@fuse/core/withRouter';
+import FuseSvgIcon from '../FuseSvgIcon';
+
+const Root = styled('div')(({ theme }) => ({
+  '& .FuseSearch-container': {
+    position: 'relative',
+  },
+
+  '& .FuseSearch-suggestionsContainerOpen': {
+    position: 'absolute',
+    zIndex: 1,
+    marginTop: theme.spacing(),
+    left: 0,
+    right: 0,
+  },
+
+  '& .FuseSearch-suggestion': {
+    display: 'block',
+  },
+
+  '& .FuseSearch-suggestionsList': {
+    margin: 0,
+    padding: 0,
+    listStyleType: 'none',
+  },
+
+  '& .FuseSearch-input': {
+    transition: theme.transitions.create(['background-color'], {
+      easing: theme.transitions.easing.easeInOut,
+      duration: theme.transitions.duration.short,
+    }),
+    '&:focus': {
+      backgroundColor: theme.palette.background.paper,
+    },
+  },
+}));
 
 function renderInputComponent(inputProps) {
-  const { variant, classes, inputRef = () => {}, ref, ...other } = inputProps;
+  const { variant, inputRef = () => {}, ref, ...other } = inputProps;
   return (
     <div className="w-full relative">
       {variant === 'basic' ? (
@@ -35,19 +67,19 @@ function renderInputComponent(inputProps) {
                 inputRef(node);
               },
               classes: {
-                input: clsx(classes.input, 'py-0 px-16 h-40 md:h-48 ltr:pr-48 rtl:pl-48'),
+                input: 'FuseSearch-input py-0 px-16 h-40 md:h-48 ltr:pr-48 rtl:pl-48',
                 notchedOutline: 'rounded-8',
               },
             }}
             variant="outlined"
             {...other}
           />
-          <Icon
+          <FuseSvgIcon
             className="absolute top-0 ltr:right-0 rtl:left-0 h-40 md:h-48 w-48 p-12 pointer-events-none"
             color="action"
           >
-            search
-          </Icon>
+            heroicons-outline:search
+          </FuseSvgIcon>
         </>
       ) : (
         // Standard
@@ -60,7 +92,7 @@ function renderInputComponent(inputProps) {
               inputRef(node);
             },
             classes: {
-              input: clsx(classes.input, 'py-0 px-16 h-48 md:h-64'),
+              input: 'FuseSearch-input py-0 px-16 h-48 md:h-64',
             },
           }}
           variant="standard"
@@ -79,7 +111,7 @@ function renderSuggestion(suggestion, { query, isHighlighted }) {
     <MenuItem selected={isHighlighted} component="div">
       <ListItemIcon className="min-w-40">
         {suggestion.icon ? (
-          <Icon>{suggestion.icon}</Icon>
+          <FuseSvgIcon>{suggestion.icon}</FuseSvgIcon>
         ) : (
           <span className="text-20 w-24 font-semibold uppercase text-center">
             {suggestion.title[0]}
@@ -124,37 +156,6 @@ function getSuggestions(value, data) {
 function getSuggestionValue(suggestion) {
   return suggestion.title;
 }
-
-const useStyles = makeStyles((theme) => ({
-  root: {},
-  container: {
-    position: 'relative',
-  },
-  suggestionsContainerOpen: {
-    position: 'absolute',
-    zIndex: 1,
-    marginTop: theme.spacing(),
-    left: 0,
-    right: 0,
-  },
-  suggestion: {
-    display: 'block',
-  },
-  suggestionsList: {
-    margin: 0,
-    padding: 0,
-    listStyleType: 'none',
-  },
-  input: {
-    transition: theme.transitions.create(['background-color'], {
-      easing: theme.transitions.easing.easeInOut,
-      duration: theme.transitions.duration.short,
-    }),
-    '&:focus': {
-      backgroundColor: theme.palette.background.paper,
-    },
-  },
-}));
 
 const initialState = {
   searchText: '',
@@ -219,10 +220,10 @@ function reducer(state, action) {
 }
 
 function FuseSearch(props) {
-  const navigation = useSelector(selectFlatNavigation);
+  const { navigation } = props;
 
   const [state, dispatch] = useReducer(reducer, initialState);
-  const classes = useStyles(props);
+
   const suggestionsNode = useRef(null);
   const popperNode = useRef(null);
   const buttonNode = useRef(null);
@@ -264,7 +265,7 @@ function FuseSearch(props) {
     if (!suggestion.url) {
       return;
     }
-    props.history.push(suggestion.url);
+    props.navigate(suggestion.url);
     hideSearch();
   }
 
@@ -308,7 +309,6 @@ function FuseSearch(props) {
             {...autosuggestProps}
             inputProps={{
               variant: props.variant,
-              classes,
               placeholder: props.placeholder,
               value: state.searchText,
               onChange: handleChange,
@@ -320,8 +320,8 @@ function FuseSearch(props) {
             }}
             theme={{
               container: 'flex flex-1 w-full',
-              suggestionsList: classes.suggestionsList,
-              suggestion: classes.suggestion,
+              suggestionsList: 'FuseSearch-suggestionsList',
+              suggestion: 'FuseSearch-suggestion',
             }}
             renderSuggestionsContainer={(options) => (
               <Popper
@@ -350,7 +350,7 @@ function FuseSearch(props) {
     }
     case 'full': {
       return (
-        <div className={clsx(classes.root, 'flex', props.className)}>
+        <Root className={clsx('flex', props.className)}>
           <Tooltip title="Click to search" placement="bottom">
             <div
               onClick={showSearch}
@@ -370,7 +370,6 @@ function FuseSearch(props) {
                   <Autosuggest
                     {...autosuggestProps}
                     inputProps={{
-                      classes,
                       placeholder: props.placeholder,
                       value: state.searchText,
                       onChange: handleChange,
@@ -381,8 +380,8 @@ function FuseSearch(props) {
                     }}
                     theme={{
                       container: 'flex flex-1 w-full',
-                      suggestionsList: classes.suggestionsList,
-                      suggestion: classes.suggestion,
+                      suggestionsList: 'FuseSearch-suggestionsList',
+                      suggestion: 'FuseSearch-suggestion',
                     }}
                     renderSuggestionsContainer={(options) => (
                       <Popper
@@ -409,14 +408,14 @@ function FuseSearch(props) {
                       </Popper>
                     )}
                   />
-                  <IconButton onClick={hideSearch} className="mx-8">
-                    <Icon>close</Icon>
+                  <IconButton onClick={hideSearch} className="mx-8" size="large">
+                    <FuseSvgIcon>heroicons-outline:x</FuseSvgIcon>
                   </IconButton>
                 </div>
               </Paper>
             </ClickAwayListener>
           )}
-        </div>
+        </Root>
       );
     }
     default: {
@@ -427,9 +426,10 @@ function FuseSearch(props) {
 
 FuseSearch.propTypes = {};
 FuseSearch.defaultProps = {
+  navigation: [],
   trigger: (
-    <IconButton className="w-40 h-40">
-      <Icon>search</Icon>
+    <IconButton className="w-40 h-40" size="large">
+      <FuseSvgIcon>heroicons-outline:search</FuseSvgIcon>
     </IconButton>
   ),
   variant: 'full',

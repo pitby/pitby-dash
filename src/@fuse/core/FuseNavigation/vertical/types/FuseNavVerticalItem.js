@@ -1,89 +1,92 @@
 import NavLinkAdapter from '@fuse/core/NavLinkAdapter';
-import Icon from '@material-ui/core/Icon';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import { makeStyles } from '@material-ui/core/styles';
-import { alpha } from '@material-ui/core/styles/colorManipulator';
+import { alpha, styled } from '@mui/material/styles';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
-import { useDispatch } from 'react-redux';
 import FuseNavBadge from '../../FuseNavBadge';
+import FuseSvgIcon from '../../../FuseSvgIcon';
 
-const useStyles = makeStyles((theme) => ({
-  item: (props) => ({
-    height: 40,
-    width: '100%',
-    borderRadius: '6px',
-    margin: '0 0 4px 0',
-    paddingRight: 12,
-    paddingLeft: props.itemPadding > 80 ? 80 : props.itemPadding,
-    color: alpha(theme.palette.text.primary, 0.7),
-    cursor: 'pointer',
-    textDecoration: 'none!important',
-    '&:hover': {
-      color: theme.palette.text.primary,
-    },
-    '&.active': {
-      color: theme.palette.text.primary,
-      backgroundColor:
-        theme.palette.type === 'light'
-          ? 'rgba(0, 0, 0, .05)!important'
-          : 'rgba(255, 255, 255, .1)!important',
-      pointerEvents: 'none',
-      transition: 'border-radius .15s cubic-bezier(0.4,0.0,0.2,1)',
-      '& .fuse-list-item-text-primary': {
-        color: 'inherit',
-      },
-      '& .fuse-list-item-icon': {
-        color: 'inherit',
-      },
-    },
-    '& .fuse-list-item-icon': {
-      marginRight: 12,
+const Root = styled(ListItem)(({ theme, ...props }) => ({
+  minHeight: 44,
+  width: '100%',
+  borderRadius: '6px',
+  margin: '0 0 4px 0',
+  paddingRight: 16,
+  paddingLeft: props.itempadding > 80 ? 80 : props.itempadding,
+  paddingTop: 10,
+  paddingBottom: 10,
+  color: alpha(theme.palette.text.primary, 0.7),
+  cursor: 'pointer',
+  textDecoration: 'none!important',
+  '&:hover': {
+    color: theme.palette.text.primary,
+  },
+  '&.active': {
+    color: theme.palette.text.primary,
+    backgroundColor:
+      theme.palette.mode === 'light'
+        ? 'rgba(0, 0, 0, .05)!important'
+        : 'rgba(255, 255, 255, .1)!important',
+    pointerEvents: 'none',
+    transition: 'border-radius .15s cubic-bezier(0.4,0.0,0.2,1)',
+    '& > .fuse-list-item-text-primary': {
       color: 'inherit',
     },
-    '& .fuse-list-item-text': {},
-  }),
+    '& > .fuse-list-item-icon': {
+      color: 'inherit',
+    },
+  },
+  '& >.fuse-list-item-icon': {
+    marginRight: 16,
+    color: 'inherit',
+  },
+  '& > .fuse-list-item-text': {},
 }));
 
 function FuseNavVerticalItem(props) {
-  const dispatch = useDispatch();
   const { item, nestedLevel, onItemClick } = props;
-  const classes = useStyles({
-    itemPadding: nestedLevel > 0 ? 28 + nestedLevel * 16 : 12,
-  });
+
+  const itempadding = nestedLevel > 0 ? 38 + nestedLevel * 16 : 16;
 
   return useMemo(
     () => (
-      <ListItem
+      <Root
         button
         component={NavLinkAdapter}
-        to={item.url}
-        activeClassName="active"
-        className={clsx(classes.item, 'fuse-list-item')}
+        to={item.url || ''}
+        activeClassName={item.url ? 'active' : ''}
+        className={clsx('fuse-list-item', item.active && 'active')}
         onClick={() => onItemClick && onItemClick(item)}
-        exact={item.exact}
+        end={item.end}
+        itempadding={itempadding}
+        role="button"
+        sx={item.sx}
+        disabled={item.disabled}
       >
         {item.icon && (
-          <Icon
-            className={clsx('fuse-list-item-icon text-20 flex-shrink-0', item.iconClass)}
+          <FuseSvgIcon
+            className={clsx('fuse-list-item-icon shrink-0', item.iconClass)}
             color="action"
           >
             {item.icon}
-          </Icon>
+          </FuseSvgIcon>
         )}
 
         <ListItemText
           className="fuse-list-item-text"
           primary={item.title}
-          classes={{ primary: 'text-13 font-medium fuse-list-item-text-primary' }}
+          secondary={item.subtitle}
+          classes={{
+            primary: 'text-13 font-medium fuse-list-item-text-primary truncate',
+            secondary: 'text-11 font-medium fuse-list-item-text-secondary leading-normal truncate',
+          }}
         />
-
         {item.badge && <FuseNavBadge badge={item.badge} />}
-      </ListItem>
+      </Root>
     ),
-    [classes.item, item, onItemClick]
+    [item, itempadding, onItemClick]
   );
 }
 

@@ -1,47 +1,52 @@
-import Drawer from '@material-ui/core/Drawer';
-import Hidden from '@material-ui/core/Hidden';
-import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
+import Drawer from '@mui/material/Drawer';
+import Hidden from '@mui/material/Hidden';
+import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import clsx from 'clsx';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 import FusePageCardedSidebarContent from './FusePageCardedSidebarContent';
 
-function FusePageCardedSidebar(props, ref) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { classes } = props;
+const FusePageCardedSidebar = forwardRef((props, ref) => {
+  const { open, position, variant, rootRef } = props;
+
+  const [isOpen, setIsOpen] = useState(open);
 
   useImperativeHandle(ref, () => ({
     toggleSidebar: handleToggleDrawer,
   }));
 
-  const handleToggleDrawer = () => {
-    setIsOpen(!isOpen);
-  };
+  const handleToggleDrawer = useCallback((val) => {
+    setIsOpen(val);
+  }, []);
+
+  useEffect(() => {
+    handleToggleDrawer(open);
+  }, [handleToggleDrawer, open]);
 
   return (
     <>
-      <Hidden lgUp={props.variant === 'permanent'}>
+      <Hidden lgUp={variant === 'permanent'}>
         <SwipeableDrawer
           variant="temporary"
-          anchor={props.position}
+          anchor={position}
           open={isOpen}
           onOpen={(ev) => {}}
-          onClose={(ev) => handleToggleDrawer()}
+          onClose={() => props?.onClose()}
           disableSwipeToOpen
           classes={{
-            root: clsx(classes.sidebarWrapper, props.variant),
+            root: clsx('FusePageCarded-sidebarWrapper', variant),
             paper: clsx(
-              classes.sidebar,
-              props.variant,
-              props.position === 'left' ? classes.leftSidebar : classes.rightSidebar
+              'FusePageCarded-sidebar',
+              variant,
+              position === 'left' ? 'FusePageCarded-leftSidebar' : 'FusePageCarded-rightSidebar'
             ),
           }}
           ModalProps={{
             keepMounted: true, // Better open performance on mobile.
           }}
-          container={props.rootRef.current}
+          // container={rootRef.current}
           BackdropProps={{
             classes: {
-              root: classes.backdrop,
+              root: 'FusePageCarded-backdrop',
             },
           }}
           style={{ position: 'absolute' }}
@@ -49,18 +54,21 @@ function FusePageCardedSidebar(props, ref) {
           <FusePageCardedSidebarContent {...props} />
         </SwipeableDrawer>
       </Hidden>
-      {props.variant === 'permanent' && (
-        <Hidden mdDown>
+      {variant === 'permanent' && (
+        <Hidden lgDown>
           <Drawer
             variant="permanent"
-            className={clsx(classes.sidebarWrapper, props.variant)}
+            anchor={position}
+            className={clsx(
+              'FusePageCarded-sidebarWrapper',
+              variant,
+              isOpen ? 'opened' : 'closed',
+              position === 'left' ? 'FusePageCarded-leftSidebar' : 'FusePageCarded-rightSidebar'
+            )}
             open={isOpen}
+            onClose={props?.onClose}
             classes={{
-              paper: clsx(
-                classes.sidebar,
-                props.variant,
-                props.position === 'left' ? classes.leftSidebar : classes.rightSidebar
-              ),
+              paper: clsx('FusePageCarded-sidebar', variant),
             }}
           >
             <FusePageCardedSidebarContent {...props} />
@@ -69,6 +77,10 @@ function FusePageCardedSidebar(props, ref) {
       )}
     </>
   );
-}
+});
 
-export default forwardRef(FusePageCardedSidebar);
+FusePageCardedSidebar.defaultProps = {
+  open: true,
+};
+
+export default FusePageCardedSidebar;

@@ -1,6 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import _ from '@lodash';
-import * as colors from '@material-ui/core/colors';
+import * as colors from '@mui/material/colors';
 
 class EventEmitter {
   constructor() {
@@ -287,7 +287,7 @@ class FuseUtils {
     return nav.map((_item) => {
       if (_item.id === parentId && _item.children) {
         return {
-          _item,
+          ..._item,
           children: [item, ..._item.children],
         };
       }

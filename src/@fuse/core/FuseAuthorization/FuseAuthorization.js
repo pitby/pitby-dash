@@ -1,9 +1,11 @@
 import FuseUtils from '@fuse/utils';
 import AppContext from 'app/AppContext';
 import { Component } from 'react';
-import { connect } from 'react-redux';
-import { matchRoutes } from 'react-router-config';
-import { withRouter } from 'react-router-dom';
+import { matchRoutes } from 'react-router-dom';
+import withRouter from '@fuse/core/withRouter';
+import history from '@history';
+
+let loginRedirectUrl = null;
 
 class FuseAuthorization extends Component {
   constructor(props, context) {
@@ -13,6 +15,7 @@ class FuseAuthorization extends Component {
       accessGranted: true,
       routes,
     };
+    this.defaultLoginRedirectUrl = props.loginRedirectUrl || '/';
   }
 
   componentDidMount() {
@@ -35,36 +38,34 @@ class FuseAuthorization extends Component {
     const { location, userRole } = props;
     const { pathname } = location;
 
-    const matched = matchRoutes(state.routes, pathname)[0];
+    const matchedRoutes = matchRoutes(state.routes, pathname);
 
+    const matched = matchedRoutes ? matchedRoutes[0] : false;
     return {
       accessGranted: matched ? FuseUtils.hasPermission(matched.route.auth, userRole) : true,
     };
   }
 
   redirectRoute() {
-    const { location, userRole, history } = this.props;
-    const { pathname, state } = location;
-    const redirectUrl = state && state.redirectUrl ? state.redirectUrl : '/';
+    const { location, userRole } = this.props;
+    const { pathname } = location;
+    const redirectUrl = loginRedirectUrl || this.defaultLoginRedirectUrl;
 
     /*
         User is guest
         Redirect to Login Page
         */
     if (!userRole || userRole.length === 0) {
-      history.push({
-        pathname: '/login',
-        state: { redirectUrl: pathname },
-      });
+      setTimeout(() => history.push('/sign-in'), 0);
+      loginRedirectUrl = pathname;
     } else {
       /*
         User is member
         User must be on unAuthorized page or just logged in
-        Redirect to dashboard or redirectUrl
+        Redirect to dashboard or loginRedirectUrl
         */
-      history.push({
-        pathname: redirectUrl,
-      });
+      setTimeout(() => history.push(redirectUrl), 0);
+      loginRedirectUrl = this.defaultLoginRedirectUrl;
     }
   }
 
@@ -74,12 +75,6 @@ class FuseAuthorization extends Component {
   }
 }
 
-function mapStateToProps({ auth }) {
-  return {
-    userRole: auth.user.role,
-  };
-}
-
 FuseAuthorization.contextType = AppContext;
 
-export default withRouter(connect(mapStateToProps)(FuseAuthorization));
+export default withRouter(FuseAuthorization);

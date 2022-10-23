@@ -1,27 +1,29 @@
-import DemoContent from '@fuse/core/DemoContent';
+import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import FusePageSimple from '@fuse/core/FusePageSimple';
-import { makeStyles } from '@material-ui/core/styles';
+import DemoContent from '@fuse/core/DemoContent';
 
-const useStyles = makeStyles({
-  layoutRoot: {},
-});
+const Root = styled(FusePageSimple)(({ theme }) => ({
+  '& .FusePageSimple-header': {
+    backgroundColor: theme.palette.background.paper,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    borderColor: theme.palette.divider,
+  },
+  '& .FusePageSimple-toolbar': {},
+  '& .FusePageSimple-content': {},
+  '& .FusePageSimple-sidebarHeader': {},
+  '& .FusePageSimple-sidebarContent': {},
+}));
 
-function SimpleFullWidthSample() {
-  const classes = useStyles();
+function ExamplePage(props) {
+  const { t } = useTranslation('examplePage');
 
   return (
-    <FusePageSimple
-      classes={{
-        root: classes.layoutRoot,
-      }}
+    <Root
       header={
         <div className="p-24">
-          <h4>Header</h4>
-        </div>
-      }
-      contentToolbar={
-        <div className="px-24">
-          <h4>Content Toolbar</h4>
+          <h4>{t('TITLE')}</h4>
         </div>
       }
       content={
@@ -31,8 +33,9 @@ function SimpleFullWidthSample() {
           <DemoContent />
         </div>
       }
+      scroll="content"
     />
   );
 }
 
-export default SimpleFullWidthSample;
+export default ExamplePage;

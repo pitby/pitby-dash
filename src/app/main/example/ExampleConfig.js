@@ -1,8 +1,9 @@
 import i18next from 'i18next';
-import Example from './Example';
+
 import en from './i18n/en';
 import tr from './i18n/tr';
 import ar from './i18n/ar';
+import Example from './Example';
 
 i18next.addResourceBundle('en', 'examplePage', en);
 i18next.addResourceBundle('tr', 'examplePage', tr);
@@ -16,8 +17,8 @@ const ExampleConfig = {
   },
   routes: [
     {
-      path: '/example',
-      component: Example,
+      path: 'example',
+      element: <Example />,
     },
   ],
 };
@@ -30,20 +31,21 @@ export default ExampleConfig;
 /*
 import React from 'react';
 
+const Example = lazy(() => import('./Example'));
+
 const ExampleConfig = {
-    settings: {
-        layout: {
-            config: {}
-        }
+  settings: {
+    layout: {
+      config: {},
     },
-    routes  : [
-        {
-            path     : '/example',
-            component: React.lazy(() => import('./Example'))
-        }
-    ]
+  },
+  routes: [
+    {
+      path: 'example',
+      element: <Example />,
+    },
+  ],
 };
 
 export default ExampleConfig;
-
 */
